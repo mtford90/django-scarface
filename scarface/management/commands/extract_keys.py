@@ -21,20 +21,20 @@ class Command(BaseCommand):
                     type="string",
                     help='The APNS .p12 file',
 
-        ),
+                    ),
         make_option('-p', '--password',
                     action='store',
                     dest='password',
                     type="string",
                     help='The associated password',
-        ),
-         make_option('-e', '--encoding',
+                    ),
+        make_option('-e', '--encoding',
                     action='store',
                     dest='encoding',
                     type="string",
                     help='The used encoding',
-                    default = 'utf-8'
-        ),
+                    default='utf-8'
+                    ),
     )
     help = 'Extracts the private key and ssl certificate from an APNS p12 file'
 
@@ -42,12 +42,15 @@ class Command(BaseCommand):
         file_name = options['file']
         password = options['password']
         encoding = options.get('encoding')
-        if not (file_name and password):
-            raise CommandError(u'Please specify a file and a password')
+        if not file_name:
+            raise CommandError(u'Please specify a file')
 
         if not os.path.isfile(file_name):
             raise CommandError(u'File "%s" does not exist'.format(file_name))
-        arguments = "openssl pkcs12 -nodes -in {file} -passin pass:\"{pw}\"".format(file=file_name, pw=password)
+        arguments = "openssl pkcs12 -nodes -in \"{file}\"".format(file=file_name)
+        if password:
+            arguments += " -passin pass:\"{pw}\""
+        print(arguments)
         result = subprocess.check_output(arguments, shell=True).decode(encoding=encoding)
         groups = re.search(regex, result).groupdict()
         cert_string = groups["cert"].replace("\n", "\\n")
